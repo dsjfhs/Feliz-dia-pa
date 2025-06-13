@@ -7,11 +7,11 @@
     body {
       margin: 0;
       overflow: hidden;
-      background: black;
+      background: black; /* Fondo oscuro tipo Matrix */
     }
 
     canvas {
-      display: block;
+      display: block; /* El canvas ocupa toda la pantalla */
     }
 
     .phrase {
@@ -20,10 +20,11 @@
       font-size: 20px;
       font-family: monospace;
       pointer-events: none;
-      animation: fadeOut 2s ease-out forwards;
+      animation: fadeOut 2s ease-out forwards; /* Desvanece lentamente */
       white-space: nowrap;
     }
 
+    /* Animación de frase emergente */
     @keyframes fadeOut {
       0% { opacity: 1; transform: translateY(0); }
       100% { opacity: 0; transform: translateY(-20px); }
@@ -39,40 +40,40 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  // 🔤 Texto tipo Matrix
+  // 🔤 FRASE QUE CAE COMO "MATRIX"
   const phrase = "Feliz Día Papá";
-  const phraseLetters = phrase.split("");
-  const fontSize = 16;
+  const phraseLetters = phrase.split(""); // Dividimos la frase en letras
+  const fontSize = 16; // Tamaño de letra en px
   const phraseLength = phraseLetters.length;
-  const columns = Math.floor(canvas.width / (fontSize * phraseLength));
-  const drops = new Array(columns).fill(0);
+  const columns = Math.floor(canvas.width / (fontSize * phraseLength)); // Cuántas columnas caben
+  const drops = new Array(columns).fill(0); // Posición Y por columna
 
   ctx.font = fontSize + "px monospace";
 
-  // 🎈 Globitos explosivos con efectos y emojis
+  // 🎈 GLOBITOS QUE EXPLOTAN CON EMOJIS Y FÍSICA
   let balloons = [];
 
   function addBalloonExplosion(x, y) {
-    const emojis = ["🎈", "🎉", "💙"];
-    for (let i = 0; i < 10; i++) {
-      const angle = Math.random() * 2 * Math.PI;
-      const speed = Math.random() * 4 + 1;
+    const emojis = ["🎈", "🎉", "💙"]; // Emojis random por explosión
+    for (let i = 0; i < 10; i++) { // Solo 10 para evitar lag
+      const angle = Math.random() * 2 * Math.PI; // Dirección aleatoria
+      const speed = Math.random() * 4 + 1; // Velocidad aleatoria
       balloons.push({
         x: x,
         y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        gravity: 0.05,
-        rotation: Math.random() * 2 * Math.PI,
-        rotateSpeed: (Math.random() - 0.5) * 0.2,
-        opacity: 1,
+        vx: Math.cos(angle) * speed, // Movimiento horizontal
+        vy: Math.sin(angle) * speed, // Movimiento vertical
+        gravity: 0.05,               // Gravedad para simular caída
+        rotation: Math.random() * 2 * Math.PI,       // Rotación inicial
+        rotateSpeed: (Math.random() - 0.5) * 0.2,     // Velocidad de giro
+        opacity: 1,                 // Comienza totalmente visible
         emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)`
+        color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)` // Color vibrante
       });
     }
   }
 
-  // 💬 Frases emergentes
+  // 💬 FRASES EMERGENTES AL HACER CLIC
   const frases = [
     "Gracias por todo, papá ❤️",
     "Eres mi héroe 👨‍👧",
@@ -82,13 +83,14 @@
   ];
   let fraseIndex = 0;
 
+  // 🎨 FUNCIÓN PRINCIPAL DE DIBUJO
   function draw() {
-    // Fondo semitransparente para efecto de arrastre
+    // Fondo negro semitransparente → efecto de estela tipo Matrix
     ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Letras que caen
-    ctx.fillStyle = "#00ffff";
+    // 💚 Letras estilo Matrix que caen verticalmente
+    ctx.fillStyle = "#00ffff"; // Color celeste Matrix
     for (let i = 0; i < drops.length; i++) {
       let xStart = i * phraseLength * fontSize;
       for (let j = 0; j < phraseLength; j++) {
@@ -97,6 +99,7 @@
         ctx.fillText(phraseLetters[j], x, y);
       }
 
+      // Si la letra ya salió de pantalla, reseteamos con probabilidad
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
@@ -104,38 +107,43 @@
       drops[i]++;
     }
 
-    // 🎈 Dibujar globitos
+    // 🎈 Dibujo y animación de los globitos explosivos
     balloons.forEach((b, index) => {
-      ctx.save();
-      ctx.translate(b.x, b.y);
-      ctx.rotate(b.rotation);
-      ctx.globalAlpha = b.opacity;
-      ctx.fillStyle = b.color;
+      ctx.save(); // Guardamos el estado actual
+      ctx.translate(b.x, b.y); // Movemos al punto (x,y) del globito
+      ctx.rotate(b.rotation);  // Rotamos para animación
+      ctx.globalAlpha = b.opacity; // Hacemos que se desvanezcan
+      ctx.fillStyle = b.color;     // Color del emoji
       ctx.font = "24px monospace";
-      ctx.fillText(b.emoji, 0, 0);
-      ctx.restore();
+      ctx.fillText(b.emoji, 0, 0); // Dibujamos emoji en esa posición
+      ctx.restore(); // Restauramos para que no afecte al resto del canvas
 
+      // Física simple
       b.x += b.vx;
       b.y += b.vy;
       b.vy += b.gravity;
       b.rotation += b.rotateSpeed;
       b.opacity -= 0.01;
 
+      // Rebote si toca el suelo (efecto cartoon)
       if (b.y > canvas.height - 20) {
         b.y = canvas.height - 20;
-        b.vy *= -0.6;
+        b.vy *= -0.6; // Rebota para arriba más lento
       }
 
+      // Eliminamos el globo si ya no se ve
       if (b.opacity <= 0) {
-        balloons.splice(index, 1);
+        balloons.splice(index, 1); // Esto puede causar lag si hay muchos
       }
     });
 
-    ctx.globalAlpha = 1.0;
+    ctx.globalAlpha = 1.0; // Volvemos a visibilidad normal
   }
 
+  // ⏱️ 25 FPS (40ms por frame)
   setInterval(draw, 40);
 
+  // 📢 Mostrar frase flotante
   function showPhrase(x, y) {
     const el = document.createElement("div");
     el.className = "phrase";
@@ -144,14 +152,16 @@
     el.style.left = (x - 100) + "px";
     el.style.top = (y - 30) + "px";
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
+    setTimeout(() => el.remove(), 2000); // Quitar después de 2 seg
   }
 
+  // 📌 Evento cuando el usuario hace clic en pantalla
   canvas.addEventListener("click", (e) => {
-    addBalloonExplosion(e.clientX, e.clientY);
-    showPhrase(e.clientX, e.clientY);
+    addBalloonExplosion(e.clientX, e.clientY); // Globos
+    showPhrase(e.clientX, e.clientY);          // Frase bonita
   });
 
+  // 🖥️ Redimensionar canvas si cambia el tamaño de ventana
   window.addEventListener("resize", () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
