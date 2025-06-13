@@ -2,118 +2,160 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Feliz Día del Padre</title>
+  <title>Feliz Día Papá</title>
   <style>
     body {
       margin: 0;
-      background: black;
       overflow: hidden;
-      font-family: monospace;
-      color: white;
+      background: black;
     }
+
     canvas {
       display: block;
     }
+
     .phrase {
       position: absolute;
-      font-size: 24px;
       color: white;
+      font-size: 20px;
+      font-family: monospace;
       pointer-events: none;
-      animation: fade 2s ease-out forwards;
+      animation: fadeOut 2s ease-out forwards;
+      white-space: nowrap;
     }
-    @keyframes fade {
-      0% { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(1.5); }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
     }
   </style>
 </head>
 <body>
-  <canvas id="matrix"></canvas>
+<canvas id="matrix"></canvas>
 
-  <script>
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+<script>
+  const canvas = document.getElementById("matrix");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-    const phrase = "Feliz Día del Padre";
-    const fontSize = 18;
-    ctx.font = fontSize + "px monospace";
-    const phraseWidth = ctx.measureText(phrase).width;
-    const spacing = phraseWidth * 1.2;
-    const columns = Math.floor(canvas.width / spacing);
-    const drops = new Array(columns).fill(1);
+  // 🔤 Texto tipo Matrix
+  const phrase = "Feliz Día Papá";
+  const phraseLetters = phrase.split("");
+  const fontSize = 16;
+  const phraseLength = phraseLetters.length;
+  const columns = Math.floor(canvas.width / (fontSize * phraseLength));
+  const drops = new Array(columns).fill(0);
 
-    function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = fontSize + "px monospace";
 
-      ctx.fillStyle = "#00BFFF";
-      ctx.font = fontSize + "px monospace";
+  // 🎈 Globitos explosivos con efectos y emojis
+  let balloons = [];
 
-      for (let i = 0; i < drops.length; i++) {
-        const x = i * spacing;
-        const y = drops[i] * fontSize;
-        ctx.fillText(phrase, x, y);
-
-        if (y > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-
-      // Animar estrellas activas
-      stars.forEach((star, index) => {
-        ctx.fillStyle = `rgba(255,255,255,${star.opacity})`;
-        ctx.font = "20px monospace";
-        ctx.fillText("★", star.x, star.y);
-        star.y -= 1.5;
-        star.opacity -= 0.02;
-        if (star.opacity <= 0) stars.splice(index, 1);
+  function addBalloonExplosion(x, y) {
+    const emojis = ["🎈", "🎉", "💙"];
+    for (let i = 0; i < 10; i++) {
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 4 + 1;
+      balloons.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        gravity: 0.05,
+        rotation: Math.random() * 2 * Math.PI,
+        rotateSpeed: (Math.random() - 0.5) * 0.2,
+        opacity: 1,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)`
       });
     }
+  }
 
-    setInterval(draw, 40);
+  // 💬 Frases emergentes
+  const frases = [
+    "Gracias por todo, papá ❤️",
+    "Eres mi héroe 👨‍👧",
+    "Feliz Día del Padre 🎉",
+    "Siempre estás ahí para mí 🙌",
+    "Te quiero muchísimo 💙"
+  ];
+  let fraseIndex = 0;
 
-    // 🌠 Estrellas animadas
-    let stars = [];
+  function draw() {
+    // Fondo semitransparente para efecto de arrastre
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    function addStars(x, y) {
-      for (let i = 0; i < 10; i++) {
-        stars.push({
-          x: x + (Math.random() - 0.5) * 50,
-          y: y + (Math.random() - 0.5) * 50,
-          opacity: 1
-        });
+    // Letras que caen
+    ctx.fillStyle = "#00ffff";
+    for (let i = 0; i < drops.length; i++) {
+      let xStart = i * phraseLength * fontSize;
+      for (let j = 0; j < phraseLength; j++) {
+        const x = xStart + j * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillText(phraseLetters[j], x, y);
       }
+
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+
+      drops[i]++;
     }
 
-    // 💬 Frases
-    const frases = [
-      "Gracias por todo, papá ❤️",
-      "Eres mi héroe 👨‍👧",
-      "Feliz Día del Padre 🎉",
-      "Siempre estás ahí para mí 🙌",
-      "Te quiero muchísimo 💙"
-    ];
-    let fraseIndex = 0;
+    // 🎈 Dibujar globitos
+    balloons.forEach((b, index) => {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rotation);
+      ctx.globalAlpha = b.opacity;
+      ctx.fillStyle = b.color;
+      ctx.font = "24px monospace";
+      ctx.fillText(b.emoji, 0, 0);
+      ctx.restore();
 
-    function showPhrase(x, y) {
-      const el = document.createElement("div");
-      el.className = "phrase";
-      el.textContent = frases[fraseIndex];
-      fraseIndex = (fraseIndex + 1) % frases.length;
-      el.style.left = (x - 100) + "px";
-      el.style.top = (y - 30) + "px";
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 2000);
-    }
+      b.x += b.vx;
+      b.y += b.vy;
+      b.vy += b.gravity;
+      b.rotation += b.rotateSpeed;
+      b.opacity -= 0.01;
 
-    // 👆 Evento click
-    canvas.addEventListener("click", (e) => {
-      addStars(e.clientX, e.clientY);
-      showPhrase(e.clientX, e.clientY);
+      if (b.y > canvas.height - 20) {
+        b.y = canvas.height - 20;
+        b.vy *= -0.6;
+      }
+
+      if (b.opacity <= 0) {
+        balloons.splice(index, 1);
+      }
     });
-  </script>
+
+    ctx.globalAlpha = 1.0;
+  }
+
+  setInterval(draw, 40);
+
+  function showPhrase(x, y) {
+    const el = document.createElement("div");
+    el.className = "phrase";
+    el.textContent = frases[fraseIndex];
+    fraseIndex = (fraseIndex + 1) % frases.length;
+    el.style.left = (x - 100) + "px";
+    el.style.top = (y - 30) + "px";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+
+  canvas.addEventListener("click", (e) => {
+    addBalloonExplosion(e.clientX, e.clientY);
+    showPhrase(e.clientX, e.clientY);
+  });
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
 </body>
 </html>
