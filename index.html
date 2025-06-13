@@ -43,7 +43,7 @@
   // 🔤 FRASE QUE CAE COMO "MATRIX"
   const phrase = "Feliz Día Papá";
   const phraseLetters = phrase.split(""); // Dividimos la frase en letras
-  const fontSize = 20; // Tamaño de letra en px
+  const fontSize = 21; // Tamaño de letra en px
   const phraseLength = phraseLetters.length;
   const columns = Math.floor(canvas.width / (fontSize * phraseLength)); // Cuántas columnas caben
   const drops = new Array(columns).fill(0); // Posición Y por columna
@@ -101,10 +101,10 @@
 
       // Si la letra ya salió de pantalla, reseteamos con probabilidad
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i]++;
+        drops[i] = 0;
       }
 
-      drops[i]+= 0.5;;
+      drops[i]++;
     }
 
     // 🎈 Dibujo y animación de los globitos explosivos
